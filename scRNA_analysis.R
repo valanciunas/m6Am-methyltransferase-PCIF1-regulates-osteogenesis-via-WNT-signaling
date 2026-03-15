@@ -226,43 +226,4 @@ Osteo14subj$celltype<-Idents(Osteo14subj)
 VlnPlot(Osteo14subj, feature= "PCIF1")
 FeaturePlot(Osteo14subj, feature= "PCIF1")
 
-# Generate a heatmap of average expression for selected marker genes across cell types with gene and cell-type annotations
-Osteo14subj.markers %>%
-  group_by(cluster) %>%
-  dplyr::filter(avg_log2FC > 1) %>%
-  slice_head(n = 10) %>%
-  ungroup() -> top10
-
-sig_markers <- top10  # Keep full marker info
-Osteo14subj$celltype <- Idents(Osteo14subj)
-genes <- unique(sig_markers$gene)
-aver_dt <- AverageExpression(Osteo14subj, features = genes, group.by = 'celltype', slot = 'data')
-aver_dt <- as.data.frame(aver_dt$RNA)
-gene_anno <- data.frame(
-  gene_anno = sig_markers$cluster
-)
-rownames(gene_anno) <- make.unique(sig_markers$gene)
-aver_dt <- aver_dt[rownames(gene_anno), , drop = FALSE]
-cell_anno <- data.frame(celltype = colnames(aver_dt), row.names = colnames(aver_dt))
-celltype_levels <- unique(cell_anno$celltype)
-geneanno_levels <- unique(gene_anno$gene_anno)
-celltype_col <- setNames(c4a("glasbey", length(celltype_levels)), celltype_levels)
-geneanno_col <- setNames(c4a("glasbey", length(geneanno_levels)), geneanno_levels)
-anno_col <- list(
-  celltype = celltype_col,
-  gene_anno = geneanno_col
-)
-mycol <- colorRampPalette(c("#5E3C99", "white", "#E66101"))(50)
-pheatmap(
-  as.matrix(aver_dt),
-  scale = "row",
-  cluster_rows = FALSE,
-  cluster_cols = FALSE,
-  annotation_col = cell_anno,
-  annotation_row = gene_anno,
-  annotation_colors = anno_col,
-  color = mycol,
-  border_color = 'white'
-)
-
 saveRDS(Osteo14subj, "Osteo14subj.rds") 
